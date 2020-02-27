@@ -36,3 +36,26 @@ app: "{{ template "stash.name" . }}"
 release: {{ .Release.Name | quote}}
 heritage: "{{ .Release.Service }}"
 {{- end -}}
+
+{{- define "stash.gen-certs" -}}
+{{- if .Values.apiserver.servingCerts.generate }}
+{{- $ca := genCA "ca" 3650 }}
+{{- $cn := include "stash.fullname" . -}}
+{{- $altName1 := printf "%s.%s" $cn .Release.Namespace }}
+{{- $altName2 := printf "%s.%s.svc" $cn .Release.Namespace }}
+{{- $server := genSignedCert $cn nil (list $altName1 $altName2) 3650 $ca }}
+{{- $caCrt := b64enc $ca.Cert }}
+{{- $serverCrt := b64enc $server.Cert }}
+{{- $serverKey := b64enc $server.Key }}
+caBundle: {{ $caCrt }}
+tlsCrt: {{ $serverCrt }}
+tlsKey: {{ $serverKey }}
+{{- else }}
+{{- $caCrt := required "Required when apiserver.servingCerts.generate is false" .Values.apiserver.servingCerts.caCrt }}
+{{- $serverCrt := required "Required when apiserver.servingCerts.generate is false" .Values.apiserver.servingCerts.serverCrt }}
+{{- $serverKey := required "Required when apiserver.servingCerts.generate is false" .Values.apiserver.servingCerts.serverKey }}
+caBundle: {{ $caCrt }}
+tlsCrt: {{ $serverCrt }}
+tlsKey: {{ $serverKey }}
+{{- end }}
+{{- end -}}

@@ -66,13 +66,26 @@ spec:
             path: /healthz
             port: 8443
             scheme: HTTPS
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
+          failureThreshold: 30
+          timeoutSeconds: 60
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8443
             scheme: HTTPS
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
+          failureThreshold: 30
+          timeoutSeconds: 60
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: 8443
+            scheme: HTTPS
+          failureThreshold: 30
+          periodSeconds: 10
 {{- end }}
         resources:
           requests:
